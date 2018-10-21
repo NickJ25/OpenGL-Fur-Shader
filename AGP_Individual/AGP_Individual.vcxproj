@@ -76,7 +76,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32d.lib;opengl32.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -84,7 +89,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32d.lib;opengl32.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -94,10 +104,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32d.lib;opengl32.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -108,14 +121,27 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32d.lib;opengl32.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="rt3d.cpp" />
+    <ClCompile Include="rt3dObjLoader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="phongShader.frag" />
+    <None Include="phongShader.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="rt3d.h" />
+    <ClInclude Include="rt3dObjLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
