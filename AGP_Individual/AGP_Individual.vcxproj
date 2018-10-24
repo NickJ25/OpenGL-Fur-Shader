@@ -136,8 +136,12 @@
     <ClCompile Include="rt3dObjLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="furShader.frag" />
+    <None Include="furShader.vert" />
     <None Include="phongShader.frag" />
     <None Include="phongShader.vert" />
+    <None Include="skyboxShader.frag" />
+    <None Include="skyboxShader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rt3d.h" />

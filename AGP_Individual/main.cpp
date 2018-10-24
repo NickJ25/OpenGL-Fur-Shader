@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/noise.hpp>
 #include <stack>
 #include <iostream>
 
@@ -26,6 +27,9 @@ GLfloat f_att_q = 0.01f;
 // Shader Programs
 GLuint phongProgram;
 GLuint skyboxProgram;
+GLuint furProgram;
+
+GLuint furLength = 5;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -39,7 +43,7 @@ GLfloat lr = 0.0f;
 stack<glm::mat4> mvStack;
 
 // Skybox Images
-GLuint textures[4];
+GLuint textures[6];
 GLuint skybox[5];
 
 rt3d::lightStruct light0 = {
@@ -133,6 +137,44 @@ GLuint loadBitmap(const char *fname) {
 	return texID;	// return value of texture ID
 }
 
+GLuint createNoiseTex(int width, int height, int a, int b) {
+	GLubyte *data = new GLubyte[width * height * 4];
+
+	float xFactor = 1.0f / (width - 1);
+	float yFactor = 1.0f / (height - 1);
+
+	for (int row = 0; row < height; row++) {
+		for (int col = 0; col < width; col++) {
+			float x = xFactor * col;
+			float y = yFactor * row;
+			float sum = 0.0f;
+			float freq = a;
+			float scale = b;
+
+			// Compute the sum for each octave
+			for (int oct = 0; oct < 4; oct++) {
+				glm::vec2 p(x * freq, y * freq);
+				float val = glm::perlin(p) / scale;
+				sum += val;
+				float result = (sum + 1.0f) / 2.0f;
+
+				// Store in texture
+				data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
+				freq *= 2.0f; // Double the frequency
+				scale *= b;
+			}
+		}
+	}
+	GLuint texID;
+	glGenTextures(1, &texID);
+
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,data);
+
+	return texID;
+}
+
 GLuint loadCubeMap(const char*fname[6], GLuint *texID)
 {
 	glGenTextures(1, texID); // generate texture ID
@@ -184,6 +226,17 @@ void shaderInit(void) {
 
 	// Skybox Shader Program
 	skyboxProgram = rt3d::initShaders("skyboxShader.vert", "skyboxShader.frag");
+
+	furProgram = rt3d::initShaders("furShader.vert", "furShader.frag");
+	rt3d::setLight(furProgram, light0);
+	rt3d::setMaterial(furProgram, material0);
+
+	uniformIndex = glGetUniformLocation(phongProgram, "in_Constant");
+	glUniform1f(uniformIndex, f_att_c);
+	uniformIndex = glGetUniformLocation(phongProgram, "in_Linear");
+	glUniform1f(uniformIndex, f_att_l);
+	uniformIndex = glGetUniformLocation(phongProgram, "in_Quadratic");
+	glUniform1f(uniformIndex, f_att_q);
 }
 
 void init(void) {
@@ -225,6 +278,7 @@ void init(void) {
 	textures[2] = loadBitmap("giraffe.bmp");
 	textures[3] = loadBitmap("cow.bmp");
 	textures[4] = loadBitmap("light.bmp");
+	textures[5] = createNoiseTex(512, 512, 1, 2);
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -349,11 +403,6 @@ void draw(SDL_Window * window) {
 	rt3d::setUniformMatrix4fv(phongProgram, "projection", glm::value_ptr(projection));
 
 	// draw a bunny
-	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, skybox[0]);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, textures[0]);
-
 	glm::mat4 modelMatrix(1.0);
 	mvStack.push(mvStack.top());
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -368,6 +417,31 @@ void draw(SDL_Window * window) {
 
 	rt3d::drawIndexedMesh(meshObjects[1], bunnyIndexCount, GL_TRIANGLES);
 	mvStack.pop();
+
+	// Draw furry Box
+	glUseProgram(furProgram);
+	rt3d::setLightPos(furProgram, glm::value_ptr(tmp));
+	rt3d::setUniformMatrix4fv(furProgram, "projection", glm::value_ptr(projection));
+
+	glBindTexture(GL_TEXTURE_2D, textures[5]);
+	mvStack.push(mvStack.top());
+	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 5.0f, 0.0f));
+	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
+	rt3d::setUniformMatrix4fv(furProgram, "modelview", glm::value_ptr(mvStack.top()));
+	rt3d::setMaterial(furProgram, material1);
+
+	for (int i = 0; i < furLength; i++) {
+		GLuint uniformIndex = glGetUniformLocation(furProgram, "furLength");
+		glUniform1i(uniformIndex, i);
+		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
+		float num = (furLength - i) * 0.2;
+		glUniform1f(uniformIndex, num);
+		rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
+	}
+
+	//rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
+	mvStack.pop();
+
 
 	mvStack.pop(); // initial matrix
 	glDepthMask(GL_TRUE);

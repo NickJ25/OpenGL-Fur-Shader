@@ -35,6 +35,18 @@
     <None Include="phongShader.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="furShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="furShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="skyboxShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="skyboxShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rt3d.h">
