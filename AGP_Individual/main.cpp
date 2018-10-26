@@ -175,6 +175,30 @@ GLuint createNoiseTex(int width, int height, int a, int b) {
 	return texID;
 }
 
+GLuint createFurTexture(GLuint seed, GLuint size, GLuint num, GLuint density) {
+	srand(seed);
+	int m_Size = size;
+	int m_NumLayers = num;
+	GLubyte *data = new GLubyte[m_Size * m_Size * m_NumLayers];
+
+	#define DATA(layer, x, y) data[m_Size*m_Size*(layer) + m_Size*(y) + (x)];
+
+	for (int row = 0; row < m_NumLayers; row++) {
+		for (int col = 0; col < m_NumLayers; col++) {
+			int xrand = rnd(0, m_Size);
+			int yrand = rnd(0, m_Size);
+		}
+	}
+
+	GLuint texID;
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, m_Size, m_Size);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Size, m_Size, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	return texID;
+
+}
+
 GLuint loadCubeMap(const char*fname[6], GLuint *texID)
 {
 	glGenTextures(1, texID); // generate texture ID
