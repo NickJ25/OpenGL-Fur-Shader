@@ -7,6 +7,10 @@
 #include <stack>
 #include <iostream>
 
+//PNG includes
+png_infop info_ptr;
+#include <png.h>
+
 using namespace std;
 
 #if _DEBUG
@@ -136,7 +140,6 @@ GLuint loadBitmap(const char *fname) {
 	SDL_FreeSurface(tmpSurface); // texture loaded, free the temporary buffer
 	return texID;	// return value of texture ID
 }
-
 GLuint createNoiseTex(int width, int height, int a, int b) {
 	GLubyte *data = new GLubyte[width * height * 4];
 
@@ -157,10 +160,9 @@ GLuint createNoiseTex(int width, int height, int a, int b) {
 				float val = glm::perlin(p) / scale;
 				sum += val;
 				float result = (sum + 1.0f) / 2.0f;
-
 				// Store in texture
 				data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
-				freq *= 2.0f; // Double the frequency
+				freq *= 58.0f; // Double the frequency
 				scale *= b;
 			}
 		}
@@ -175,28 +177,17 @@ GLuint createNoiseTex(int width, int height, int a, int b) {
 	return texID;
 }
 
-GLuint createFurTexture(GLuint seed, GLuint size, GLuint num, GLuint density) {
-	srand(seed);
-	int m_Size = size;
-	int m_NumLayers = num;
-	GLubyte *data = new GLubyte[m_Size * m_Size * m_NumLayers];
-
-	#define DATA(layer, x, y) data[m_Size*m_Size*(layer) + m_Size*(y) + (x)];
-
-	for (int row = 0; row < m_NumLayers; row++) {
-		for (int col = 0; col < m_NumLayers; col++) {
-			int xrand = rnd(0, m_Size);
-			int yrand = rnd(0, m_Size);
-		}
+// PNG Writer, base code by Guillaume Cottenceau (http://zarb.org/~gc/html/libpng.html)
+void writePNG(char* fileName) {
+	// Create file
+	FILE *fp = fopen(fileName, "wb");
+	if (!fp) {
+		cout << "[PNG Writer] File " << fileName << " could not be opened for writing" << endl;
+		return;
 	}
 
-	GLuint texID;
-	glGenTextures(1, &texID);
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, m_Size, m_Size);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Size, m_Size, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	return texID;
-
+	// Initalize Stuff
+	png_ptr
 }
 
 GLuint loadCubeMap(const char*fname[6], GLuint *texID)
