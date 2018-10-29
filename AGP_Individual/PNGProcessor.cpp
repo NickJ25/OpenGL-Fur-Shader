@@ -1,5 +1,9 @@
 #include "PNGProcessor.h"
 
+const float INV_RAND_MAX = 1.0 / (RAND_MAX + 1);
+inline float rnd(float max = 1.0) { return max * INV_RAND_MAX * rand(); }
+inline float rnd(float min, float max) { return min + (max - min) * INV_RAND_MAX * rand(); }
+
 void PNGProcessor::readPNG(const char * file_name)
 {
 
@@ -88,6 +92,8 @@ GLuint PNGProcessor::processPNG(float perlin_freq)
 	float xFactor = 1.0f / (width - 1);
 	float yFactor = 1.0f / (height - 1);
 
+	float m_Size = 8;
+
 	for (int row = 0; row < height; row++) {
 		png_byte* png_row = row_pointers[row];
 		for (int col = 0; col < width; col++) {
@@ -98,27 +104,36 @@ GLuint PNGProcessor::processPNG(float perlin_freq)
 			float freq = 1;//a;
 			float scale = 2;//b;
 
-			// Compute the sum for each octave
-			for (int oct = 0; oct < 4; oct++) {
-				glm::vec2 p(x * freq, y * freq);
-				float val = glm::perlin(p);// / scale;
-				sum += val;
-				float result = (sum + 1.0f) / 2.0f;
-				// Store in texture
-				//data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
-				//freq *= 16; // Double the frequency
-				//scale *= 2;//b;
-				if (result < 0.5) result = 0;
-				else result = 1;
-				px[0] = (result * 255.0f);
-				px[1] = (result * 255.0f);
-				px[2] = (result * 255.0f);
-				px[3] = (result * 255.0f);
+			srand(28382);
+			float result = rnd(0, m_Size);
+			cout << result << endl;
+			px[0] = (result * 255.0f);
+			px[1] = (result * 255.0f);
+			px[2] = (result * 255.0f);
+			px[3] = (result * 255.0f);
+			data[((row * width + col) * 4)] = (GLubyte)(result * 255.0f);
 
-				data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
-				freq *= perlin_freq; // Double the frequency
-				//scale *= 2;	//b;
-			}
+			//// Compute the sum for each octave
+			//for (int oct = 0; oct < 4; oct++) {
+			//	glm::vec2 p(x * freq, y * freq);
+			//	float val = glm::simplex(p);// glm::perlin(p);// / scale;
+			//	sum += val;
+			//	float result = (sum + 1.0f) / 2.0f;
+			//	// Store in texture
+			//	//data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
+			//	//freq *= 16; // Double the frequency
+			//	//scale *= 2;//b;
+			//	if (result < 0.5) result = 0;
+			//	else result = 1;
+			//	px[0] = (result * 255.0f);
+			//	px[1] = (result * 255.0f);
+			//	px[2] = (result * 255.0f);
+			//	px[3] = (result * 255.0f);
+
+			//	data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
+			//	freq *= perlin_freq; // Double the frequency
+			//	//scale *= 2;	//b;
+			//}
 		}
 	}
 
@@ -131,6 +146,61 @@ GLuint PNGProcessor::processPNG(float perlin_freq)
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	return texID;
+
+}
+
+GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density, bool makePNGs)
+{
+	srand(seed);
+	int m_Size = size;
+	int m_NumLayers = num;
+
+	GLubyte *data = new GLubyte[width * height * 4];
+	for (int layer = 0; layer < m_NumLayers; layer++) {
+		for (int row = 0; row < height; row++) {
+			png_byte* png_row = row_pointers[row];
+			for (int col = 0; col < width; col++) {
+				png_bytep px = &(png_row[col * 4]);
+				data[((row * width + col) * 4)] = (GLubyte)(0.0f);
+				px[0] = (0.0f);
+				px[1] = (0.0f);
+				px[2] = (0.0f);
+				px[3] = (0.0f);
+				
+			}
+		}
+	}
+	for (int layer = 0; layer < m_NumLayers; layer++) {
+		srand(28382);
+		float length = float(layer) / m_NumLayers;
+		int m_density = density * length * 3;
+		for (int i = 0; i < density; i++) {
+			int xrand = rnd(0, m_Size) * 4;
+			int yrand = rnd(0, m_Size) * 4;
+			png_byte* png_row = row_pointers[yrand];
+			png_bytep px = &(png_row[xrand * 4]);
+			px[0] = (1.0f);
+			px[1] = (1.0f);
+			px[2] = (1.0f);
+			px[3] = (1.0f);
+			data[((xrand *width + yrand) * 4)] = (GLubyte)(1.0f);
+		}
+	}
+
+	GLuint texID;
+	glGenTextures(1, &texID);
+
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+	return texID;
+}
+
+void PNGProcessor::sizeOverride(int iwidth, int iheight)
+{
+	height = iheight;
+	width = iwidth;
 
 }
 

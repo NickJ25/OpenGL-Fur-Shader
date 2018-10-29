@@ -44,7 +44,7 @@ GLuint phongProgram;
 GLuint skyboxProgram;
 GLuint furProgram;
 
-const GLuint furLength = 8;
+const GLuint furLength = 30;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -295,17 +295,19 @@ void init(void) {
 	//textures[5] = loadBitmap("cow.bmp"); //createNoiseTex(512, 512, 1, 2);
 	PNGProcessor pngprocess;
 	float perlinFreq = 16;
-	for (int i = 0; i < furLength; i++) {
-		string filename = std::string("blank") + std::to_string(i+1) + ".png";
-		pngprocess.readPNG(filename.c_str());
-		cout << "[Fur Textures] Generating file [" << i + 1 << "] out of [" << furLength << "] at Frequency: " << perlinFreq << endl;
-		furTextures[i] = pngprocess.processPNG(perlinFreq);
-		perlinFreq *= 1.4;
-		//textures[5] = pngprocess.processPNG();
-		pngprocess.writePNG(filename.c_str());
-	}
-	
-
+	//for (int i = 0; i < furLength; i++) {
+	//	string filename = std::string("blank") + std::to_string(i+1) + ".png";
+	//	pngprocess.readPNG(filename.c_str());
+	//	cout << "[Fur Textures] Generating file [" << i + 1 << "] out of [" << furLength << "] at Frequency: " << perlinFreq << endl;
+	//	furTextures[i] = pngprocess.processPNG(perlinFreq);
+	//	perlinFreq *= 1.2;
+	//	//textures[5] = pngprocess.processPNG();
+	//	pngprocess.writePNG(filename.c_str());
+	//}
+	pngprocess.readPNG("blank1.png");
+	//pngprocess.sizeOverride(512, 512);
+	textures[5] = pngprocess.createFurTextures(383832, 128, 20, 2000, false);
+	pngprocess.writePNG("blank1.png");
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -456,7 +458,7 @@ void draw(SDL_Window * window) {
 	rt3d::setMaterial(furProgram, material1);
 	float num = 1;
 	for (int i = 0; i < furLength; i++) {
-		glBindTexture(GL_TEXTURE_2D, furTextures[i]);
+		glBindTexture(GL_TEXTURE_2D, textures[5]);
 		GLuint uniformIndex = glGetUniformLocation(furProgram, "furLength");
 		glUniform1i(uniformIndex, i);
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
