@@ -161,11 +161,11 @@ GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density,
 			png_byte* png_row = row_pointers[row];
 			for (int col = 0; col < width; col++) {
 				png_bytep px = &(png_row[col * 4]);
-				data[((row * width + col) * 4)] = (GLubyte)(0.0f);
-				px[0] = (0.0f);
-				px[1] = (0.0f);
-				px[2] = (0.0f);
-				px[3] = (0.0f);
+				data[((row * width + col) * 4)] = (GLubyte)(0.0f * 255.0f);
+				px[0] = (0.0f* 255.0f);
+				px[1] = (0.0f* 255.0f);
+				px[2] = (0.0f* 255.0f);
+				px[3] = (0.0f* 255.0f);
 				
 			}
 		}
@@ -179,11 +179,11 @@ GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density,
 			int yrand = rnd(0, m_Size) * 4;
 			png_byte* png_row = row_pointers[yrand];
 			png_bytep px = &(png_row[xrand * 4]);
-			px[0] = (1.0f);
-			px[1] = (1.0f);
-			px[2] = (1.0f);
-			px[3] = (1.0f);
-			data[((xrand *width + yrand) * 4)] = (GLubyte)(1.0f);
+			px[0] = (1.0f* 255.0f);
+			px[1] = (1.0f* 255.0f);
+			px[2] = (1.0f* 255.0f);
+			px[3] = (1.0f* 255.0f);
+			data[((xrand *width + yrand) * 4)] = (GLubyte)(1.0f * 255.0f);
 		}
 	}
 
