@@ -12,6 +12,7 @@ uniform  int furLength;
 
 out vec2 ex_TexCoord;
 out vec3 ex_Normal;
+out int ex_furLength;
 
 
 // Fur Settings
@@ -22,10 +23,10 @@ float layer = 0;
 
 // multiply each vertex position by the MVP matrix
 void main(void) {
-
+	ex_furLength = furLength;
 	//ex_TexCoord = (normalize(in_Position)).xy;
 
-	vec3 Pos = in_Position.xyz + (in_Normal * (furLength * 0.05) );
+	vec3 Pos = in_Position.xyz + (in_Normal * (furLength * 0.01) );
 	vec4 P = modelview * vec4(Pos,1.0);
 	//ex_Normal = normalize(vec4(in_Normal,1.0) * modelview).xyz;
 	mat3 normalmatrix = transpose(inverse(mat3(modelview)));

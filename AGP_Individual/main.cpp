@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_DEPRECATE
 #include "rt3d.h"
 #include "rt3dObjLoader.h"
 #include <glm/glm.hpp>
@@ -6,10 +7,8 @@
 #include <glm/gtc/noise.hpp>
 #include <stack>
 #include <iostream>
+#include "PNGProcessor.h"
 
-//PNG includes
-png_infop info_ptr;
-#include <png.h>
 
 using namespace std;
 
@@ -17,6 +16,18 @@ using namespace std;
 #pragma comment(linker, "/subsystem:\"console\" /entry:\"WinMainCRTStartup\"")
 #endif
 #define DEG_TO_RADIAN 0.017453293
+
+
+// PNG includes
+png_structp png_ptr;
+png_infop info_ptr;
+png_bytep * row_pointers;
+int x, y;
+int width, height;
+png_byte color_type;
+png_byte bit_depth;
+int number_of_passes;
+
 
 // Bunny Index Count
 GLuint cubeIndexCount = 0;
@@ -33,7 +44,7 @@ GLuint phongProgram;
 GLuint skyboxProgram;
 GLuint furProgram;
 
-GLuint furLength = 5;
+const GLuint furLength = 8;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -48,6 +59,7 @@ stack<glm::mat4> mvStack;
 
 // Skybox Images
 GLuint textures[6];
+GLuint furTextures[furLength];
 GLuint skybox[5];
 
 rt3d::lightStruct light0 = {
@@ -177,19 +189,6 @@ GLuint createNoiseTex(int width, int height, int a, int b) {
 	return texID;
 }
 
-// PNG Writer, base code by Guillaume Cottenceau (http://zarb.org/~gc/html/libpng.html)
-void writePNG(char* fileName) {
-	// Create file
-	FILE *fp = fopen(fileName, "wb");
-	if (!fp) {
-		cout << "[PNG Writer] File " << fileName << " could not be opened for writing" << endl;
-		return;
-	}
-
-	// Initalize Stuff
-	png_ptr
-}
-
 GLuint loadCubeMap(const char*fname[6], GLuint *texID)
 {
 	glGenTextures(1, texID); // generate texture ID
@@ -293,7 +292,19 @@ void init(void) {
 	textures[2] = loadBitmap("giraffe.bmp");
 	textures[3] = loadBitmap("cow.bmp");
 	textures[4] = loadBitmap("light.bmp");
-	textures[5] = createNoiseTex(512, 512, 1, 2);
+	//textures[5] = loadBitmap("cow.bmp"); //createNoiseTex(512, 512, 1, 2);
+	PNGProcessor pngprocess;
+	float perlinFreq = 16;
+	for (int i = 0; i < furLength; i++) {
+		string filename = std::string("blank") + std::to_string(i+1) + ".png";
+		pngprocess.readPNG(filename.c_str());
+		cout << "[Fur Textures] Generating file [" << i + 1 << "] out of [" << furLength << "] at Frequency: " << perlinFreq << endl;
+		furTextures[i] = pngprocess.processPNG(perlinFreq);
+		perlinFreq *= 1.4;
+		//textures[5] = pngprocess.processPNG();
+		pngprocess.writePNG(filename.c_str());
+	}
+	
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -438,19 +449,24 @@ void draw(SDL_Window * window) {
 	rt3d::setLightPos(furProgram, glm::value_ptr(tmp));
 	rt3d::setUniformMatrix4fv(furProgram, "projection", glm::value_ptr(projection));
 
-	glBindTexture(GL_TEXTURE_2D, textures[5]);
 	mvStack.push(mvStack.top());
 	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 5.0f, 0.0f));
 	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
 	rt3d::setUniformMatrix4fv(furProgram, "modelview", glm::value_ptr(mvStack.top()));
 	rt3d::setMaterial(furProgram, material1);
-
+	float num = 1;
 	for (int i = 0; i < furLength; i++) {
+		glBindTexture(GL_TEXTURE_2D, furTextures[i]);
 		GLuint uniformIndex = glGetUniformLocation(furProgram, "furLength");
 		glUniform1i(uniformIndex, i);
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
-		float num = (furLength - i) * 0.2;
+		//float num = (furLength - i) * 0.2;
+		num = num - (1 / (float)furLength);
+		if (num > 1) num = 1;
+		if (num < 0) num = 0;
 		glUniform1f(uniformIndex, num);
+		uniformIndex = glGetUniformLocation(furProgram, "current");
+		glUniform1i(uniformIndex, i);
 		rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
 	}
 
