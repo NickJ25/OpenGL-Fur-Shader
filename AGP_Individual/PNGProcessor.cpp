@@ -67,26 +67,6 @@ void PNGProcessor::readPNG(const char * file_name)
 
 GLuint PNGProcessor::processPNG(float perlin_freq)
 {
-	//if (png_get_color_type(png_ptr, info_ptr) == PNG_COLOR_TYPE_RGB) {
-	//	cout << "[PNG Processor] input file is PNG_COLOR_TYPE_RGB but must be PNG_COLOR_TYPE_RGBA" << endl;
-	//	return;
-	//}
-	//if (png_get_color_type(png_ptr, info_ptr) != PNG_COLOR_TYPE_RGBA) {
-	//	cout << "[PNG Processor] color_type of input file must be PNG_COLOR_TYPE_RGBA" << endl;
-	//	return;
-	//}
-	//for (y = 0; y < height; y++) {
-	//	png_byte* row = row_pointers[y];
-	//	for (x = 0; x < width; x++) {
-	//		png_byte* ptr = &(row[x * 4]);
-	//		printf("Pixel at position [ %d - %d ] has RGBA values: %d - %d - %d - %d\n",
-	//			x, y, ptr[0], ptr[1], ptr[2], ptr[3]);
-
-	//		/* set red value to 0 and green value to the blue one */
-	//		ptr[0] = 0;
-	//		ptr[1] = ptr[2];
-	//	}
-	//}
 	GLubyte *data = new GLubyte[width * height * 4];
 
 	float xFactor = 1.0f / (width - 1);
@@ -112,28 +92,6 @@ GLuint PNGProcessor::processPNG(float perlin_freq)
 			px[2] = (result * 255.0f);
 			px[3] = (result * 255.0f);
 			data[((row * width + col) * 4)] = (GLubyte)(result * 255.0f);
-
-			//// Compute the sum for each octave
-			//for (int oct = 0; oct < 4; oct++) {
-			//	glm::vec2 p(x * freq, y * freq);
-			//	float val = glm::simplex(p);// glm::perlin(p);// / scale;
-			//	sum += val;
-			//	float result = (sum + 1.0f) / 2.0f;
-			//	// Store in texture
-			//	//data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
-			//	//freq *= 16; // Double the frequency
-			//	//scale *= 2;//b;
-			//	if (result < 0.5) result = 0;
-			//	else result = 1;
-			//	px[0] = (result * 255.0f);
-			//	px[1] = (result * 255.0f);
-			//	px[2] = (result * 255.0f);
-			//	px[3] = (result * 255.0f);
-
-			//	data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
-			//	freq *= perlin_freq; // Double the frequency
-			//	//scale *= 2;	//b;
-			//}
 		}
 	}
 
@@ -155,6 +113,7 @@ GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density,
 	int m_Size = size;
 	int m_NumLayers = num;
 
+	// Clear Layers and make background transparent
 	GLubyte *data = new GLubyte[width * height * 4];
 	for (int layer = 0; layer < m_NumLayers; layer++) {
 		for (int row = 0; row < height; row++) {
@@ -170,6 +129,7 @@ GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density,
 			}
 		}
 	}
+	// Put dots randomly across the transparent images
 	for (int layer = 0; layer < m_NumLayers; layer++) {
 		srand(28382);
 		float length = float(layer) / m_NumLayers;

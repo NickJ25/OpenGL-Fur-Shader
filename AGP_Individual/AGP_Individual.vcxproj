@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{BE334562-4EB8-415B-97A2-2D3ED8EBC7AA}</ProjectGuid>
     <RootNamespace>AGPIndividual</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -76,10 +76,10 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;D:\Users\Cookie\Desktop\libpngBUILD\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;..\..\..\dev\libpng1635\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;D:\Users\Cookie\Desktop\libpngBUILD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;..\..\..\dev\libpng1635\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32d.lib;opengl32.lib;SDL2.lib;SDL2main.lib;libpng16d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -89,10 +89,10 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;D:\Users\Cookie\Desktop\libpngBUILD\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\dev\SDL2-2.0.8\include;..\..\..\dev\glew-2.1.0\include;..\..\..\dev\glm;..\..\..\dev\libpng1635\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;D:\Users\Cookie\Desktop\libpngBUILD\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\dev\SDL2-2.0.8\VisualC\Win32\Debug;..\..\..\dev\glew-2.1.0\lib\Debug\Win32;..\..\..\dev\libpng1635\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32d.lib;opengl32.lib;SDL2.lib;SDL2main.lib;libpng16d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

@@ -44,7 +44,10 @@ GLuint phongProgram;
 GLuint skyboxProgram;
 GLuint furProgram;
 
-const GLuint furLength = 30;
+// Fur Settings
+//const GLuint furLength = 30;
+float furLength = 0.5;
+int layers = 30;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -59,7 +62,7 @@ stack<glm::mat4> mvStack;
 
 // Skybox Images
 GLuint textures[6];
-GLuint furTextures[furLength];
+//GLuint furTextures[furLength];
 GLuint skybox[5];
 
 rt3d::lightStruct light0 = {
@@ -152,43 +155,6 @@ GLuint loadBitmap(const char *fname) {
 	SDL_FreeSurface(tmpSurface); // texture loaded, free the temporary buffer
 	return texID;	// return value of texture ID
 }
-GLuint createNoiseTex(int width, int height, int a, int b) {
-	GLubyte *data = new GLubyte[width * height * 4];
-
-	float xFactor = 1.0f / (width - 1);
-	float yFactor = 1.0f / (height - 1);
-
-	for (int row = 0; row < height; row++) {
-		for (int col = 0; col < width; col++) {
-			float x = xFactor * col;
-			float y = yFactor * row;
-			float sum = 0.0f;
-			float freq = a;
-			float scale = b;
-
-			// Compute the sum for each octave
-			for (int oct = 0; oct < 4; oct++) {
-				glm::vec2 p(x * freq, y * freq);
-				float val = glm::perlin(p) / scale;
-				sum += val;
-				float result = (sum + 1.0f) / 2.0f;
-				// Store in texture
-				data[((row * width + col) * 4) + oct] = (GLubyte)(result * 255.0f);
-				freq *= 58.0f; // Double the frequency
-				scale *= b;
-			}
-		}
-	}
-	GLuint texID;
-	glGenTextures(1, &texID);
-
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE,data);
-
-	return texID;
-}
-
 GLuint loadCubeMap(const char*fname[6], GLuint *texID)
 {
 	glGenTextures(1, texID); // generate texture ID
@@ -295,15 +261,6 @@ void init(void) {
 	//textures[5] = loadBitmap("cow.bmp"); //createNoiseTex(512, 512, 1, 2);
 	PNGProcessor pngprocess;
 	float perlinFreq = 16;
-	//for (int i = 0; i < furLength; i++) {
-	//	string filename = std::string("blank") + std::to_string(i+1) + ".png";
-	//	pngprocess.readPNG(filename.c_str());
-	//	cout << "[Fur Textures] Generating file [" << i + 1 << "] out of [" << furLength << "] at Frequency: " << perlinFreq << endl;
-	//	furTextures[i] = pngprocess.processPNG(perlinFreq);
-	//	perlinFreq *= 1.2;
-	//	//textures[5] = pngprocess.processPNG();
-	//	pngprocess.writePNG(filename.c_str());
-	//}
 	pngprocess.readPNG("blank1.png");
 	//pngprocess.sizeOverride(512, 512);
 	textures[5] = pngprocess.createFurTextures(383832, 128, 20, 2000, false);
@@ -323,21 +280,23 @@ glm::vec3 moveRight(glm::vec3 pos, GLfloat angle, GLfloat d) {
 
 void update(void) {
 	const Uint8 *keys = SDL_GetKeyboardState(NULL);
-	if (keys[SDL_SCANCODE_UP]) { // Select Gouraud Shader 
-		//selectedProgram = gouraudProgram;
-		cout << "Up selected!" << endl;
+	if (keys[SDL_SCANCODE_UP]) { 
+		layers += 1;
+		cout << "Layers: " << layers << endl;
 	}
-	if (keys[SDL_SCANCODE_DOWN]) { // Select Phong Shader 
-		//selectedProgram = phongProgram;
-		cout << "Down selected!" << endl;
+	if (keys[SDL_SCANCODE_DOWN]) { 
+		layers -= 1;
+		if (layers < 0) layers = 0;
+		cout << "Layers: " << layers << endl;
 	}
-	if (keys[SDL_SCANCODE_LEFT]) { // Select Refraction Shader 
-		//selectedProgram = refractionProgram;
-		cout << "Left selected!" << endl;
+	if (keys[SDL_SCANCODE_LEFT]) { 
+		furLength -= 0.1;
+		if (furLength < 0) furLength = 0;
+		cout << "Fur Length: " << furLength << endl;
 	}
 	if (keys[SDL_SCANCODE_RIGHT]) { // Select Reflection Shader 
-		//selectedProgram = reflectionProgram;
-		cout << "Right selected!" << endl;
+		furLength += 0.1;
+		cout << "Fur Length: " << furLength << endl;
 	}
 	if (keys[SDL_SCANCODE_W]) eye = moveForward(eye, r, 0.1f);
 	if (keys[SDL_SCANCODE_S]) eye = moveForward(eye, r, -0.1f);
@@ -447,6 +406,7 @@ void draw(SDL_Window * window) {
 	mvStack.pop();
 
 	// Draw furry Box
+
 	glUseProgram(furProgram);
 	rt3d::setLightPos(furProgram, glm::value_ptr(tmp));
 	rt3d::setUniformMatrix4fv(furProgram, "projection", glm::value_ptr(projection));
@@ -456,14 +416,22 @@ void draw(SDL_Window * window) {
 	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
 	rt3d::setUniformMatrix4fv(furProgram, "modelview", glm::value_ptr(mvStack.top()));
 	rt3d::setMaterial(furProgram, material1);
+	uniformIndex = glGetUniformLocation(furProgram, "layers");
+	glUniform1i(uniformIndex, layers);
+	uniformIndex = glGetUniformLocation(furProgram, "furLength");
+	glUniform1f(uniformIndex, furLength);
 	float num = 1;
-	for (int i = 0; i < furLength; i++) {
+	for (int i = 0; i < layers; i++) {
+		// Include current to make background normal
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textures[0]);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[5]);
-		GLuint uniformIndex = glGetUniformLocation(furProgram, "furLength");
+		uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
 		glUniform1i(uniformIndex, i);
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
 		//float num = (furLength - i) * 0.2;
-		num = num - (1 / (float)furLength);
+		num = num - (1 / (float)layers);
 		if (num > 1) num = 1;
 		if (num < 0) num = 0;
 		glUniform1f(uniformIndex, num);
