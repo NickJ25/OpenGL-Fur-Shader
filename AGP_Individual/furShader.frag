@@ -19,22 +19,22 @@ vec4 vecLightDir = vec4(0.8, 0.8, 1.0,0.0);
 
 layout(location = 0) out vec4 out_Color;
 vec4 furColour;
+vec4 baseColour = texture(textureUnit1, ex_TexCoord);
 void main(void) {
 	// Make Base of object a texture
 	if(current == 0)
 	{
-		furColour = texture(textureUnit1, ex_TexCoord);
+		baseColour = texture(textureUnit1, ex_TexCoord);
 	} else {
 		furColour = texture(textureUnit0, ex_TexCoord); //[current]
 	// Tells OpenGL what to do with transparency.
-		if(furColour.a < 0.1)
-			discard;
-		if(furColour.r < 0.1)
-			discard;
-		if(furColour.g < 0.1)
-			discard;
-		if(furColour.b < 0.1)
-			discard;
+		if(furColour.a < 0.1) discard;
+		if(furColour.r < 0.1) discard;
+		else furColour.r = baseColour.r;
+		if(furColour.g < 0.1) discard;
+		else furColour.g = baseColour.g;
+		if(furColour.b < 0.1) discard;
+		else furColour.b = baseColour.b;
 		//vec4 finalColour = furColour;
 	}
 	//ambient = ambient * finalColour;
@@ -45,7 +45,7 @@ void main(void) {
 	//finalColour.w = UVScale;
 
 	// Fragment colour
-	out_Color = furColour;
+	out_Color = furColour * baseColour;
 	//out_Color = finalColour;
 	//out_Color = vec4(1.0f,1.0f,1.0f,1.0f); 
 }

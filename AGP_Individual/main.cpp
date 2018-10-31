@@ -45,9 +45,9 @@ GLuint skyboxProgram;
 GLuint furProgram;
 
 // Fur Settings
-//const GLuint furLength = 30;
-float furLength = 0.5;
+float furLength = 0.2;
 int layers = 30;
+int furDensity = 30000;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -210,6 +210,10 @@ void shaderInit(void) {
 	furProgram = rt3d::initShaders("furShader.vert", "furShader.frag");
 	rt3d::setLight(furProgram, light0);
 	rt3d::setMaterial(furProgram, material0);
+	uniformIndex = glGetUniformLocation(furProgram, "textureUnit1");
+	glUniform1i(uniformIndex, 1);
+	uniformIndex = glGetUniformLocation(furProgram, "textureUnit0");
+	glUniform1i(uniformIndex, 0);
 
 	uniformIndex = glGetUniformLocation(phongProgram, "in_Constant");
 	glUniform1f(uniformIndex, f_att_c);
@@ -217,6 +221,7 @@ void shaderInit(void) {
 	glUniform1f(uniformIndex, f_att_l);
 	uniformIndex = glGetUniformLocation(phongProgram, "in_Quadratic");
 	glUniform1f(uniformIndex, f_att_q);
+
 }
 
 void init(void) {
@@ -263,7 +268,7 @@ void init(void) {
 	float perlinFreq = 16;
 	pngprocess.readPNG("blank1.png");
 	//pngprocess.sizeOverride(512, 512);
-	textures[5] = pngprocess.createFurTextures(383832, 128, 20, 2000, false);
+	textures[5] = pngprocess.createFurTextures(383832, 128, 20, furDensity, false);
 	pngprocess.writePNG("blank1.png");
 
 	glEnable(GL_DEPTH_TEST);
@@ -424,13 +429,12 @@ void draw(SDL_Window * window) {
 	for (int i = 0; i < layers; i++) {
 		// Include current to make background normal
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textures[0]);
+		glBindTexture(GL_TEXTURE_2D, textures[1]);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[5]);
 		uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
 		glUniform1i(uniformIndex, i);
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
-		//float num = (furLength - i) * 0.2;
 		num = num - (1 / (float)layers);
 		if (num > 1) num = 1;
 		if (num < 0) num = 0;
