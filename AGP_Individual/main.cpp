@@ -48,6 +48,7 @@ GLuint furProgram;
 float furLength = 0.2;
 int layers = 30;
 int furDensity = 30000;
+int furPatternNum = 0;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -295,13 +296,29 @@ void update(void) {
 		cout << "Layers: " << layers << endl;
 	}
 	if (keys[SDL_SCANCODE_LEFT]) { 
-		furLength -= 0.1;
+		furLength -= 0.01;
 		if (furLength < 0) furLength = 0;
 		cout << "Fur Length: " << furLength << endl;
 	}
 	if (keys[SDL_SCANCODE_RIGHT]) { // Select Reflection Shader 
-		furLength += 0.1;
+		furLength += 0.01;
 		cout << "Fur Length: " << furLength << endl;
+	}
+	if (keys[SDL_SCANCODE_1]) {
+		furPatternNum = 0;
+		cout << "Fur Selected: Tiger" << endl;
+	}
+	if (keys[SDL_SCANCODE_2]) {
+		furPatternNum = 1;
+		cout << "Fur Selected: Leopard" << endl;
+	}
+	if (keys[SDL_SCANCODE_3]) {
+		furPatternNum = 2;
+		cout << "Fur Selected: Giraffe" << endl;
+	}
+	if (keys[SDL_SCANCODE_4]) {
+		furPatternNum = 3;
+		cout << "Fur Selected: Cow" << endl;
 	}
 	if (keys[SDL_SCANCODE_W]) eye = moveForward(eye, r, 0.1f);
 	if (keys[SDL_SCANCODE_S]) eye = moveForward(eye, r, -0.1f);
@@ -429,7 +446,7 @@ void draw(SDL_Window * window) {
 	for (int i = 0; i < layers; i++) {
 		// Include current to make background normal
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textures[1]);
+		glBindTexture(GL_TEXTURE_2D, textures[furPatternNum]);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[5]);
 		uniformIndex = glGetUniformLocation(furProgram, "currentLayer");

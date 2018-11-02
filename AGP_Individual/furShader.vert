@@ -20,7 +20,7 @@ out int ex_furLength;
 // Fur Settings
 float UVScale = 1.0f;
 float layer = 0;
-vec4 vGravity = vec4(0.0f, -2.0f, 0.0f, 1.0f);
+vec4 vGravity = vec4(0.0f, -5.0f, 0.0f, 1.0f);
 
 
 // multiply each vertex position by the MVP matrix
@@ -36,7 +36,7 @@ void main(void) {
 
 	float layerNormalize = (currentLayer / layers);
 	vGravity = (vGravity * modelview);
-	float k = layerNormalize * layerNormalize * layerNormalize; //pow(layerNormalize, 3);
+	float k = pow(layerNormalize, 3) * 0.5;
 	P = P + vGravity * k;
 	
 	// As the layers gets closer to the tip, bend more
