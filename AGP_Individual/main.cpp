@@ -9,7 +9,7 @@
 #include <iostream>
 #include "PNGProcessor.h"
 
-
+// https://www.turbosquid.com/3d-models/free-obj-mode-dog-games/855437
 using namespace std;
 
 #if _DEBUG
@@ -63,7 +63,7 @@ stack<glm::mat4> mvStack;
 
 // Skybox Images
 GLuint textures[6];
-//GLuint furTextures[furLength];
+
 GLuint skybox[5];
 
 rt3d::lightStruct light0 = {
@@ -264,11 +264,9 @@ void init(void) {
 	textures[2] = loadBitmap("giraffe.bmp");
 	textures[3] = loadBitmap("cow.bmp");
 	textures[4] = loadBitmap("light.bmp");
-	//textures[5] = loadBitmap("cow.bmp"); //createNoiseTex(512, 512, 1, 2);
 	PNGProcessor pngprocess;
 	float perlinFreq = 16;
 	pngprocess.readPNG("blank1.png");
-	//pngprocess.sizeOverride(512, 512);
 	textures[5] = pngprocess.createFurTextures(383832, 128, 20, furDensity, false);
 	pngprocess.writePNG("blank1.png");
 
@@ -456,12 +454,13 @@ void draw(SDL_Window * window) {
 		if (num > 1) num = 1;
 		if (num < 0) num = 0;
 		glUniform1f(uniformIndex, num);
-		uniformIndex = glGetUniformLocation(furProgram, "current");
-		glUniform1i(uniformIndex, i);
 		rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
 	}
-
-	//rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
+	//if (layers == 0) {
+	//	uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
+	//	glUniform1i(uniformIndex, 0);
+	//	rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
+	//}
 	mvStack.pop();
 
 
