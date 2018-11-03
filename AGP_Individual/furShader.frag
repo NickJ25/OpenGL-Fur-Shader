@@ -1,4 +1,4 @@
-// textured.frag
+// furShader.frag
 #version 330
 
 // Some drivers require the following
@@ -8,9 +8,8 @@ in vec3 ex_Normal;
 //in int ex_furLength;
 uniform  int current;
 uniform float UVScale;
-uniform int layers;
-uniform  int currentLayer;
-const int furNum = 8;
+uniform float layers;
+uniform float currentLayer;
 
 uniform sampler2D textureUnit0;
 uniform sampler2D textureUnit1;
@@ -42,10 +41,8 @@ void main(void) {
 	//finalColour = ambient + diffuse * dot(vecLightDir, vec4(ex_Normal,1.0));
 
 	furColour.w = UVScale;
-	//finalColour.w = UVScale;
 
 	// Fragment colour
-	out_Color = furColour * baseColour;
+	out_Color = furColour;
 	if(currentLayer == 0) out_Color = vec4(0.0,0.0,0.0,1.0);
-	//out_Color = vec4(1.0f,1.0f,1.0f,1.0f); 
 }

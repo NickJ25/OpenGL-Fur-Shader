@@ -8,8 +8,6 @@
 #include <stack>
 #include <iostream>
 #include "PNGProcessor.h"
-
-// https://www.turbosquid.com/3d-models/free-obj-mode-dog-games/855437
 using namespace std;
 
 #if _DEBUG
@@ -32,7 +30,7 @@ int number_of_passes;
 // Bunny Index Count
 GLuint cubeIndexCount = 0;
 GLuint bunnyIndexCount = 0;
-GLuint meshObjects[2];
+GLuint meshObjects[3];
 
 // Attenuation Parameters
 GLfloat f_att_c = 1.0f;
@@ -40,14 +38,13 @@ GLfloat f_att_l = 0.0f;
 GLfloat f_att_q = 0.01f;
 
 // Shader Programs
-GLuint phongProgram;
 GLuint skyboxProgram;
 GLuint furProgram;
 
 // Fur Settings
 float furLength = 0.2;
 int layers = 30;
-int furDensity = 30000;
+int furDensity = 50000;
 int furPatternNum = 0;
 
 // Camera Properties
@@ -63,7 +60,6 @@ stack<glm::mat4> mvStack;
 
 // Skybox Images
 GLuint textures[6];
-
 GLuint skybox[5];
 
 rt3d::lightStruct light0 = {
@@ -193,36 +189,17 @@ GLuint loadCubeMap(const char*fname[6], GLuint *texID)
 }
 
 void shaderInit(void) {
-	// Phong Shader Program
-	phongProgram = rt3d::initShaders("phongShader.vert", "phongShader.frag");
-	rt3d::setLight(phongProgram, light0);
-	rt3d::setMaterial(phongProgram, material0);
-
-	GLuint uniformIndex = glGetUniformLocation(phongProgram, "in_Constant");
-	glUniform1f(uniformIndex, f_att_c);
-	uniformIndex = glGetUniformLocation(phongProgram, "in_Linear");
-	glUniform1f(uniformIndex, f_att_l);
-	uniformIndex = glGetUniformLocation(phongProgram, "in_Quadratic");
-	glUniform1f(uniformIndex, f_att_q);
-
 	// Skybox Shader Program
 	skyboxProgram = rt3d::initShaders("skyboxShader.vert", "skyboxShader.frag");
 
+	// Fur Shader Program
 	furProgram = rt3d::initShaders("furShader.vert", "furShader.frag");
 	rt3d::setLight(furProgram, light0);
 	rt3d::setMaterial(furProgram, material0);
-	uniformIndex = glGetUniformLocation(furProgram, "textureUnit1");
+	GLuint uniformIndex = glGetUniformLocation(furProgram, "textureUnit1");
 	glUniform1i(uniformIndex, 1);
 	uniformIndex = glGetUniformLocation(furProgram, "textureUnit0");
 	glUniform1i(uniformIndex, 0);
-
-	uniformIndex = glGetUniformLocation(phongProgram, "in_Constant");
-	glUniform1f(uniformIndex, f_att_c);
-	uniformIndex = glGetUniformLocation(phongProgram, "in_Linear");
-	glUniform1f(uniformIndex, f_att_l);
-	uniformIndex = glGetUniformLocation(phongProgram, "in_Quadratic");
-	glUniform1f(uniformIndex, f_att_q);
-
 }
 
 void init(void) {
@@ -253,7 +230,7 @@ void init(void) {
 	indices.clear();
 
 	// Prepare Bunny model
-	rt3d::loadObj("bunny-5000.obj", verts, norms, tex_coords, indices);
+	rt3d::loadObj("wolf.obj", verts, norms, tex_coords, indices);
 	bunnyIndexCount = indices.size();
 	meshObjects[1] = rt3d::createMesh(verts.size() / 3, verts.data(), nullptr, norms.data(), tex_coords.data(), bunnyIndexCount, indices.data());
 
@@ -290,7 +267,7 @@ void update(void) {
 	}
 	if (keys[SDL_SCANCODE_DOWN]) { 
 		layers -= 1;
-		if (layers < 0) layers = 0;
+		if (layers < 1) layers = 1;
 		cout << "Layers: " << layers << endl;
 	}
 	if (keys[SDL_SCANCODE_LEFT]) { 
@@ -322,12 +299,12 @@ void update(void) {
 	if (keys[SDL_SCANCODE_S]) eye = moveForward(eye, r, -0.1f);
 	if (keys[SDL_SCANCODE_A]) eye = moveRight(eye, r, -0.1f);
 	if (keys[SDL_SCANCODE_D]) eye = moveRight(eye, r, 0.1f);
-	if (keys[SDL_SCANCODE_Y]) lightPos[2] -= 0.2;//eye = moveForward(eye, r, 0.1f);
-	if (keys[SDL_SCANCODE_H]) lightPos[2] += 0.2;
-	if (keys[SDL_SCANCODE_G]) lightPos[0] -= 0.2;
-	if (keys[SDL_SCANCODE_J]) lightPos[0] += 0.2;
-	if (keys[SDL_SCANCODE_I]) lightPos[1] += 0.2;
-	if (keys[SDL_SCANCODE_K]) lightPos[1] -= 0.2;
+	//if (keys[SDL_SCANCODE_Y]) lightPos[2] -= 0.2;//eye = moveForward(eye, r, 0.1f);
+	//if (keys[SDL_SCANCODE_H]) lightPos[2] += 0.2;
+	//if (keys[SDL_SCANCODE_G]) lightPos[0] -= 0.2;
+	//if (keys[SDL_SCANCODE_J]) lightPos[0] += 0.2;
+	//if (keys[SDL_SCANCODE_I]) lightPos[1] += 0.2;
+	//if (keys[SDL_SCANCODE_K]) lightPos[1] -= 0.2;
 	if (keys[SDL_SCANCODE_R]) eye.y += 0.1;
 	if (keys[SDL_SCANCODE_F]) eye.y -= 0.1;
 
@@ -344,7 +321,7 @@ void draw(SDL_Window * window) {
 
 	glm::mat4 projection(1.0);
 	projection = glm::perspective(float(60.0f*DEG_TO_RADIAN), 800.0f / 600.0f, 1.0f, 150.0f);
-	rt3d::setUniformMatrix4fv(phongProgram, "projection", glm::value_ptr(projection));
+	//rt3d::setUniformMatrix4fv(phongProgram, "projection", glm::value_ptr(projection));
 
 	GLfloat scale(1.0f);
 
@@ -373,71 +350,19 @@ void draw(SDL_Window * window) {
 	// back to remainder of rendering
 	glDepthMask(GL_TRUE); // make sure depth test is on
 
-	glUseProgram(phongProgram);
-
-	glm::vec4 tmp = mvStack.top()*lightPos;
-	light0.position[0] = tmp.x;
-	light0.position[1] = tmp.y;
-	light0.position[2] = tmp.z;
-	rt3d::setLightPos(phongProgram, glm::value_ptr(tmp));
-
-	rt3d::setUniformMatrix4fv(phongProgram, "projection", glm::value_ptr(projection));
-
-	// draw a cube for ground plane
-	glBindTexture(GL_TEXTURE_2D, textures[0]);
-	mvStack.push(mvStack.top());
-	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 0.1f, 0.0f));
-	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(5.0f, 0.1f, 5.0f));
-	rt3d::setUniformMatrix4fv(phongProgram, "modelview", glm::value_ptr(mvStack.top()));
-	rt3d::setMaterial(phongProgram, material0);
-	rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
-	mvStack.pop();
-
-	// draw a cube for light
-	glBindTexture(GL_TEXTURE_2D, textures[4]);
-	mvStack.push(mvStack.top());
-	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(lightPos[0], lightPos[1], lightPos[2]));
-	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
-	rt3d::setUniformMatrix4fv(phongProgram, "modelview", glm::value_ptr(mvStack.top()));
-	rt3d::setMaterial(phongProgram, material1);
-	rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
-	mvStack.pop();
-
-
-	glUseProgram(phongProgram);
-
-	rt3d::setLightPos(phongProgram, glm::value_ptr(tmp));
-	rt3d::setUniformMatrix4fv(phongProgram, "projection", glm::value_ptr(projection));
-
-	// draw a bunny
-	glm::mat4 modelMatrix(1.0);
-	mvStack.push(mvStack.top());
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(8.0f, 8.0f, 8.0f));
-	mvStack.top() = mvStack.top() * modelMatrix;
-
-	rt3d::setUniformMatrix4fv(phongProgram, "modelMatrix", glm::value_ptr(modelMatrix));
-	rt3d::setUniformMatrix4fv(phongProgram, "modelview", glm::value_ptr(mvStack.top()));
-	rt3d::setMaterial(phongProgram, material0);
-	GLuint uniformIndex = glGetUniformLocation(phongProgram, "cameraPos");
-	glUniform3fv(uniformIndex, 1, glm::value_ptr(eye));
-
-	rt3d::drawIndexedMesh(meshObjects[1], bunnyIndexCount, GL_TRIANGLES);
-	mvStack.pop();
-
 	// Draw furry Box
 
 	glUseProgram(furProgram);
-	rt3d::setLightPos(furProgram, glm::value_ptr(tmp));
+	//rt3d::setLightPos(furProgram, glm::value_ptr(tmp));
 	rt3d::setUniformMatrix4fv(furProgram, "projection", glm::value_ptr(projection));
 
 	mvStack.push(mvStack.top());
-	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 5.0f, 0.0f));
+	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 0.0f, -5.0f));
 	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
 	rt3d::setUniformMatrix4fv(furProgram, "modelview", glm::value_ptr(mvStack.top()));
 	rt3d::setMaterial(furProgram, material1);
-	uniformIndex = glGetUniformLocation(furProgram, "layers");
-	glUniform1i(uniformIndex, layers);
+	GLuint uniformIndex = glGetUniformLocation(furProgram, "layers");
+	glUniform1f(uniformIndex, (float)layers);
 	uniformIndex = glGetUniformLocation(furProgram, "furLength");
 	glUniform1f(uniformIndex, furLength);
 	float num = 1;
@@ -448,19 +373,28 @@ void draw(SDL_Window * window) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[5]);
 		uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
-		glUniform1i(uniformIndex, i);
+		glUniform1f(uniformIndex, (float)i);
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
 		num = num - (1 / (float)layers);
 		if (num > 1) num = 1;
 		if (num < 0) num = 0;
 		glUniform1f(uniformIndex, num);
-		rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
+		rt3d::drawIndexedMesh(meshObjects[1], bunnyIndexCount, GL_TRIANGLES);
+
+		/*float layerNormalize = (((float)i + 1) / layers);
+		glm::vec4 vGravity = (glm::vec4(0.0f, -2.0f, 0.0f, 1.0f) * mvStack.top());
+		float k = pow(layerNormalize, 3);
+		glm::vec4 mod = (vGravity * k);*/
+		//cout << "[" << i << "]" << "Modi; " << (float)mod.x << "," << (float)mod.y << "," << (float)mod.z << " | Norm: " << (float)layerNormalize  << " i: " << i << " layers: " << layers << endl;
 	}
 	//if (layers == 0) {
 	//	uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
 	//	glUniform1i(uniformIndex, 0);
 	//	rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
 	//}
+
+
+
 	mvStack.pop();
 
 
