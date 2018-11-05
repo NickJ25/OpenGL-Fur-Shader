@@ -16,10 +16,9 @@ private:
 	png_byte color_type;
 	png_byte bit_depth;
 	png_bytep *row_pointers;
-public:
 	void readPNG(const char* file_name);
-	GLuint processPNG(float perlin_freq);
-	GLuint createFurTextures(int seed, int size, int num, int density, bool makePNGs);
-	void sizeOverride(int iwidth, int iheight);
 	void writePNG(const char* file_name);
+public:
+	GLuint createFurTextures(int seed, int size, int num, int density, int texWidth, int texHeight);
+	GLuint createFurTextures(int seed, int size, int num, int density, const char* file_name);
 };

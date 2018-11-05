@@ -195,9 +195,7 @@ void init(void) {
 	textures[2] = loadBitmap("giraffe.bmp");
 	textures[3] = loadBitmap("cow.bmp");
 	PNGProcessor pngprocess;
-	pngprocess.readPNG("blank1.png");
-	textures[4] = pngprocess.createFurTextures(383832, 128, 20, furDensity, false);
-	pngprocess.writePNG("blank1.png");
+	textures[4] = pngprocess.createFurTextures(383832, 128, 20, furDensity, 512, 512);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);

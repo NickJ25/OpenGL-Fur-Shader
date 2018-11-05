@@ -4,6 +4,7 @@ const float INV_RAND_MAX = 1.0 / (RAND_MAX + 1);
 inline float rnd(float max = 1.0) { return max * INV_RAND_MAX * rand(); }
 inline float rnd(float min, float max) { return min + (max - min) * INV_RAND_MAX * rand(); }
 
+// Read PNG Files and store data
 void PNGProcessor::readPNG(const char * file_name)
 {
 
@@ -65,105 +66,7 @@ void PNGProcessor::readPNG(const char * file_name)
 	fclose(fp);
 }
 
-GLuint PNGProcessor::processPNG(float perlin_freq)
-{
-	GLubyte *data = new GLubyte[width * height * 4];
-
-	float xFactor = 1.0f / (width - 1);
-	float yFactor = 1.0f / (height - 1);
-
-	float m_Size = 8;
-
-	for (int row = 0; row < height; row++) {
-		png_byte* png_row = row_pointers[row];
-		for (int col = 0; col < width; col++) {
-			png_bytep px = &(png_row[col * 4]);
-			float x = xFactor * col;
-			float y = yFactor * row;
-			float sum = 0.0f;
-			float freq = 1;//a;
-			float scale = 2;//b;
-
-			srand(28382);
-			float result = rnd(0, m_Size);
-			cout << result << endl;
-			px[0] = (result * 255.0f);
-			px[1] = (result * 255.0f);
-			px[2] = (result * 255.0f);
-			px[3] = (result * 255.0f);
-			data[((row * width + col) * 4)] = (GLubyte)(result * 255.0f);
-		}
-	}
-
-	// Generates and returns the Texture for shader
-	GLuint texID;
-	glGenTextures(1, &texID);
-
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-	return texID;
-
-}
-
-GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density, bool makePNGs)
-{
-	srand(seed);
-	int m_Size = size;
-	int m_NumLayers = num;
-
-	// Clear Layers and make background transparent
-	GLubyte *data = new GLubyte[width * height * 4];
-	for (int layer = 0; layer < m_NumLayers; layer++) {
-		for (int row = 0; row < height; row++) {
-			png_byte* png_row = row_pointers[row];
-			for (int col = 0; col < width; col++) {
-				png_bytep px = &(png_row[col * 4]);
-				data[((row * width + col) * 4)] = (GLubyte)(0.0f * 255.0f);
-				px[0] = (0.0f* 255.0f);
-				px[1] = (0.0f* 255.0f);
-				px[2] = (0.0f* 255.0f);
-				px[3] = (0.0f* 255.0f);
-				
-			}
-		}
-	}
-	// Put dots randomly across the transparent images
-	for (int layer = 0; layer < m_NumLayers; layer++) {
-		srand(28382);
-		float length = float(layer) / m_NumLayers;
-		int m_density = density * length * 3;
-		for (int i = 0; i < density; i++) {
-			int xrand = rnd(0, m_Size) * 4;
-			int yrand = rnd(0, m_Size) * 4;
-			png_byte* png_row = row_pointers[yrand];
-			png_bytep px = &(png_row[xrand * 4]);
-			px[0] = (1.0f* 255.0f);
-			px[1] = (1.0f* 255.0f);
-			px[2] = (1.0f* 255.0f);
-			px[3] = (1.0f* 255.0f);
-			data[((xrand *width + yrand) * 4)] = (GLubyte)(1.0f * 255.0f);
-		}
-	}
-
-	GLuint texID;
-	glGenTextures(1, &texID);
-
-	glBindTexture(GL_TEXTURE_2D, texID);
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-	return texID;
-}
-
-void PNGProcessor::sizeOverride(int iwidth, int iheight)
-{
-	height = iheight;
-	width = iwidth;
-
-}
-
+// Write to the read PNG file.
 void PNGProcessor::writePNG(const char * file_name)
 {
 	// Create file
@@ -211,3 +114,98 @@ void PNGProcessor::writePNG(const char * file_name)
 	free(row_pointers);
 	fclose(fp);
 }
+
+// Standard Fur Strand Randomizer Method
+GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density, int texWidth, int texHeight)
+{
+	width = texWidth;
+	height = texHeight;
+	srand(seed);
+	int m_Size = size;
+	int m_NumLayers = num;
+
+	// Clear Layers and make background transparent
+	GLubyte *data = new GLubyte[width * height * 4];
+	for (int layer = 0; layer < m_NumLayers; layer++) {
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
+				data[((row * width + col) * 4)] = (GLubyte)(0.0f * 255.0f);
+				
+			}
+		}
+	}
+	// Put dots randomly across the transparent images
+	for (int layer = 0; layer < m_NumLayers; layer++) {
+		srand(28382);
+		float length = float(layer) / m_NumLayers;
+		int m_density = density * length * 3;
+		for (int i = 0; i < density; i++) {
+			int xrand = rnd(0, m_Size) * 4;
+			int yrand = rnd(0, m_Size) * 4;
+			data[((xrand *width + yrand) * 4)] = (GLubyte)(1.0f * 255.0f);
+		}
+	}
+
+	GLuint texID;
+	glGenTextures(1, &texID);
+
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+	return texID;
+}
+
+// Fur Strand Randomizer with PNG export
+GLuint PNGProcessor::createFurTextures(int seed, int size, int num, int density, const char* file_name)
+{
+	readPNG(file_name);
+	srand(seed);
+	int m_Size = size;
+	int m_NumLayers = num;
+
+	// Clear Layers and make background transparent
+	GLubyte *data = new GLubyte[width * height * 4];
+	for (int layer = 0; layer < m_NumLayers; layer++) {
+		for (int row = 0; row < height; row++) {
+			png_byte* png_row = row_pointers[row];
+			for (int col = 0; col < width; col++) {
+				png_bytep px = &(png_row[col * 4]);
+				data[((row * width + col) * 4)] = (GLubyte)(0.0f * 255.0f);
+				px[0] = (0.0f* 255.0f);
+				px[1] = (0.0f* 255.0f);
+				px[2] = (0.0f* 255.0f);
+				px[3] = (0.0f* 255.0f);
+
+			}
+		}
+	}
+	// Put dots randomly across the transparent images
+	for (int layer = 0; layer < m_NumLayers; layer++) {
+		srand(28382);
+		float length = float(layer) / m_NumLayers;
+		int m_density = density * length * 3;
+		for (int i = 0; i < density; i++) {
+			int xrand = rnd(0, m_Size) * 4;
+			int yrand = rnd(0, m_Size) * 4;
+			png_byte* png_row = row_pointers[yrand];
+			png_bytep px = &(png_row[xrand * 4]);
+			px[0] = (1.0f* 255.0f);
+			px[1] = (1.0f* 255.0f);
+			px[2] = (1.0f* 255.0f);
+			px[3] = (1.0f* 255.0f);
+			data[((xrand *width + yrand) * 4)] = (GLubyte)(1.0f * 255.0f);
+		}
+	}
+	writePNG(file_name);
+	GLuint texID;
+	glGenTextures(1, &texID);
+
+	glBindTexture(GL_TEXTURE_2D, texID);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+	return texID;
+}
+
+
