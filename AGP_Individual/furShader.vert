@@ -14,30 +14,25 @@ uniform  float layers;
 uniform	 float furLength;
 
 out vec2 ex_TexCoord;
-out vec3 ex_Normal;
-out int ex_furLength;
 
-
-// Fur Settings
-float UVScale = 1.0f;
-float layer = 0;
 vec4 vGravity = vec4(0.0f, -2.0f, 0.0f, 1.0f);
 
-
-// multiply each vertex position by the MVP matrix
 void main(void) {
+	// Extrude the surface by the normal by the gap
 	vec3 Pos = in_Position.xyz + (in_Normal * (currentLayer * (furLength / layers)));
+	// Translate into worldspace
 	vec4 P = (modelview * vec4(Pos,1.0));
-	mat3 normalmatrix = transpose(inverse(mat3(modelview)));
-	ex_Normal = normalize(normalmatrix * in_Normal);
 
 	// As the layers gets closer to the tip, bend more
 	float layerNormalize = (currentLayer / layers);
 	vGravity = (vGravity * modelview);
 	float k = pow(layerNormalize, 3) * 0.08;
-	//P = P + vGravity * k;
-	//P = P + vec4(1.0f, 1.0f, 1.0f, 1.0f) * (furFlowOffset *0.1);
+	P = P + vGravity * k;
+	if(currentLayer != 0){
+		P = P + vec4(1.0f, 1.0f, 1.0f, 1.0f) * (furFlowOffset);
+	}
 
 	ex_TexCoord = in_TexCoord;
     gl_Position = projection * P;
 }
+

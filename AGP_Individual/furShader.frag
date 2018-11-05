@@ -5,17 +5,12 @@
 // Some drivers require the following
 precision highp float;
 in vec2 ex_TexCoord;
-in vec3 ex_Normal;
-uniform  int current;
 uniform float UVScale;
 uniform float layers;
 uniform float currentLayer;
 
 uniform sampler2D textureUnit0;
 uniform sampler2D textureUnit1;
-
-vec4 ambient = vec4(0.0, 0.0, 0.0, 0.0);
-vec4 vecLightDir = vec4(0.8, 0.8, 1.0,0.0);
 
 layout(location = 0) out vec4 out_Color;
 vec4 furColour;
@@ -27,6 +22,8 @@ void main(void) {
 		furColour = texture(textureUnit0, ex_TexCoord);
 		// Tells OpenGL what to do with transparency.
 		if(furColour.a < 0.1) discard;
+
+		// Else to replace pixel colours
 		if(furColour.r < 0.1) discard;
 		else furColour.r = baseColour.r;
 		if(furColour.g < 0.1) discard;
@@ -41,3 +38,4 @@ void main(void) {
 	out_Color = furColour;
 	if(currentLayer == 0) out_Color = vec4(0.0,0.0,0.0,1.0);
 }
+

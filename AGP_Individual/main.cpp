@@ -9,11 +9,6 @@
 #include <iostream>
 #include "PNGProcessor.h"
 
-// Randomizer provided from http://www.xbdev.net/directx3dx/specialX/Fur/index.php
-const float INV_RAND_MAX = 1.0 / (RAND_MAX + 1);
-inline float rnd(float max = 1.0) { return max * INV_RAND_MAX * rand(); }
-inline float rnd(float min, float max) { return min + (max - min) * INV_RAND_MAX * rand(); }
-
 using namespace std;
 
 #if _DEBUG
@@ -35,6 +30,7 @@ int layers = 30;
 int furDensity = 50000;
 int furPatternNum = 0;
 float furFlowOffset = 0; // For fur animation/ movement.
+bool increment = false;
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -50,15 +46,6 @@ stack<glm::mat4> mvStack;
 // Skybox Images
 GLuint textures[6];
 GLuint skybox[5];
-
-rt3d::lightStruct light0 = {
-	{1.0f, 1.0f, 1.0f, 1.0f}, // ambient
-	{1.0f, 1.0f, 1.0f, 1.0f}, // diffuse
-	{1.0f, 1.0f, 1.0f, 1.0f}, // specular
-	{-10.0f, 10.0f, 10.0f, 1.0f}  // position
-};
-glm::vec4 lightPos(-7.0f, 3.6f, -7.5f, 1.0f); //light position
-
 
 // Set up rendering context
 SDL_Window * setupRC(SDL_GLContext &context) {
@@ -305,22 +292,26 @@ void draw(SDL_Window * window) {
 	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 0.0f, -5.0f));
 	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
 	rt3d::setUniformMatrix4fv(furProgram, "modelview", glm::value_ptr(mvStack.top()));
+	// Pass through the total amount of layers
 	GLuint uniformIndex = glGetUniformLocation(furProgram, "layers");
 	glUniform1f(uniformIndex, (float)layers);
+	// Pass through fur length 
 	uniformIndex = glGetUniformLocation(furProgram, "furLength");
 	glUniform1f(uniformIndex, furLength);
 	float num = 1;
-	furFlowOffset = rnd(0.01, 0.1);
+
+	// Assign textures
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textures[furPatternNum]);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures[4]);
+	
 	for (int i = 0; i < layers; i++) {
-		// Include current to make background normal
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textures[furPatternNum]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[4]);
+		// Pass through currentLayer
 		uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
 		glUniform1f(uniformIndex, (float)i);
 
-		// Pass through UVScale and determine the alpha 
+		// Determine the alpha and pass it through via UVScale
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
 		num = num - (1 / (float)layers);
 		if (num > 1) num = 1;
@@ -329,7 +320,15 @@ void draw(SDL_Window * window) {
 
 		// Passthrough fur movement.
 		uniformIndex = glGetUniformLocation(furProgram, "furFlowOffset");
-		glUniform1f(uniformIndex, furFlowOffset);
+		if (furFlowOffset > 0.01) {
+			increment = false;
+		}
+		else if (furFlowOffset < -0.01) {
+			increment = true;
+		}
+		if(increment) furFlowOffset += 0.00001;
+		else furFlowOffset -= 0.00001;
+		glUniform1f(uniformIndex, furFlowOffset * ((float)i / (float)layers));
 
 		rt3d::drawIndexedMesh(meshObjects[0], meshIndexCount, GL_TRIANGLES);
 
