@@ -1,5 +1,6 @@
 #include "PNGProcessor.h"
 
+// Randomizer provided from http://www.xbdev.net/directx3dx/specialX/Fur/index.php
 const float INV_RAND_MAX = 1.0 / (RAND_MAX + 1);
 inline float rnd(float max = 1.0) { return max * INV_RAND_MAX * rand(); }
 inline float rnd(float min, float max) { return min + (max - min) * INV_RAND_MAX * rand(); }

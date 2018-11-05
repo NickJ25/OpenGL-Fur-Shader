@@ -8,6 +8,12 @@
 #include <stack>
 #include <iostream>
 #include "PNGProcessor.h"
+
+// Randomizer provided from http://www.xbdev.net/directx3dx/specialX/Fur/index.php
+const float INV_RAND_MAX = 1.0 / (RAND_MAX + 1);
+inline float rnd(float max = 1.0) { return max * INV_RAND_MAX * rand(); }
+inline float rnd(float min, float max) { return min + (max - min) * INV_RAND_MAX * rand(); }
+
 using namespace std;
 
 #if _DEBUG
@@ -28,6 +34,7 @@ float furLength = 0.2;
 int layers = 30;
 int furDensity = 50000;
 int furPatternNum = 0;
+float furFlowOffset = 0; // For fur animation/ movement.
 
 // Camera Properties
 glm::vec3 eye(0.0f, 1.0f, 3.0f);
@@ -249,19 +256,10 @@ void update(void) {
 	if (keys[SDL_SCANCODE_S]) eye = moveForward(eye, r, -0.1f);
 	if (keys[SDL_SCANCODE_A]) eye = moveRight(eye, r, -0.1f);
 	if (keys[SDL_SCANCODE_D]) eye = moveRight(eye, r, 0.1f);
-	//if (keys[SDL_SCANCODE_Y]) lightPos[2] -= 0.2;//eye = moveForward(eye, r, 0.1f);
-	//if (keys[SDL_SCANCODE_H]) lightPos[2] += 0.2;
-	//if (keys[SDL_SCANCODE_G]) lightPos[0] -= 0.2;
-	//if (keys[SDL_SCANCODE_J]) lightPos[0] += 0.2;
-	//if (keys[SDL_SCANCODE_I]) lightPos[1] += 0.2;
-	//if (keys[SDL_SCANCODE_K]) lightPos[1] -= 0.2;
 	if (keys[SDL_SCANCODE_R]) eye.y += 0.1;
 	if (keys[SDL_SCANCODE_F]) eye.y -= 0.1;
-
 	if (keys[SDL_SCANCODE_COMMA]) r -= 1.0f;
 	if (keys[SDL_SCANCODE_PERIOD]) r += 1.0f;
-
-
 }
 
 
@@ -312,6 +310,7 @@ void draw(SDL_Window * window) {
 	uniformIndex = glGetUniformLocation(furProgram, "furLength");
 	glUniform1f(uniformIndex, furLength);
 	float num = 1;
+	furFlowOffset = rnd(0.01, 0.1);
 	for (int i = 0; i < layers; i++) {
 		// Include current to make background normal
 		glActiveTexture(GL_TEXTURE1);
@@ -327,7 +326,13 @@ void draw(SDL_Window * window) {
 		if (num > 1) num = 1;
 		if (num < 0) num = 0;
 		glUniform1f(uniformIndex, num);
+
+		// Passthrough fur movement.
+		uniformIndex = glGetUniformLocation(furProgram, "furFlowOffset");
+		glUniform1f(uniformIndex, furFlowOffset);
+
 		rt3d::drawIndexedMesh(meshObjects[0], meshIndexCount, GL_TRIANGLES);
+
 	}
 	mvStack.pop();
 

@@ -8,6 +8,7 @@ uniform mat4 projection;
 in  vec3 in_Position;
 in  vec3 in_Normal;
 in  vec2 in_TexCoord;
+uniform  float furFlowOffset;
 uniform  float currentLayer;
 uniform  float layers;
 uniform	 float furLength;
@@ -34,7 +35,8 @@ void main(void) {
 	float layerNormalize = (currentLayer / layers);
 	vGravity = (vGravity * modelview);
 	float k = pow(layerNormalize, 3) * 0.08;
-	P = P + vGravity * k;
+	//P = P + vGravity * k;
+	//P = P + vec4(1.0f, 1.0f, 1.0f, 1.0f) * (furFlowOffset *0.1);
 
 	ex_TexCoord = in_TexCoord;
     gl_Position = projection * P;
