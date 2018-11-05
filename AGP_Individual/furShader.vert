@@ -1,5 +1,5 @@
 // furShader.vert
-// use textures, but no lighting
+// use textures, but no lighting or materials
 #version 330
 
 uniform mat4 modelview;

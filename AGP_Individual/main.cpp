@@ -15,27 +15,9 @@ using namespace std;
 #endif
 #define DEG_TO_RADIAN 0.017453293
 
-
-// PNG includes
-png_structp png_ptr;
-png_infop info_ptr;
-png_bytep * row_pointers;
-int x, y;
-int width, height;
-png_byte color_type;
-png_byte bit_depth;
-int number_of_passes;
-
-
-// Bunny Index Count
-GLuint cubeIndexCount = 0;
-GLuint bunnyIndexCount = 0;
-GLuint meshObjects[3];
-
-// Attenuation Parameters
-GLfloat f_att_c = 1.0f;
-GLfloat f_att_l = 0.0f;
-GLfloat f_att_q = 0.01f;
+// Mesh Index Count
+GLuint meshIndexCount = 0;
+GLuint meshObjects[1];
 
 // Shader Programs
 GLuint skyboxProgram;
@@ -69,20 +51,6 @@ rt3d::lightStruct light0 = {
 	{-10.0f, 10.0f, 10.0f, 1.0f}  // position
 };
 glm::vec4 lightPos(-7.0f, 3.6f, -7.5f, 1.0f); //light position
-
-rt3d::materialStruct material0 = {
-	{0.0f, 0.8f, 0.2f, 1.0f}, // ambient
-	{0.5f, 1.0f, 0.5f, 1.0f}, // diffuse
-	{0.0f, 0.1f, 0.0f, 1.0f}, // specular
-	2.0f  // shininess
-};
-
-rt3d::materialStruct material1 = {
-	{0.0f, 0.8f, 0.2f, 1.0f}, // ambient
-	{0.5f, 1.0f, 0.5f, 1.0f}, // diffuse
-	{0.0f, 0.0f, 0.0f, 1.0f}, // specular
-	2.0f  // shininess
-};
 
 
 // Set up rendering context
@@ -194,8 +162,6 @@ void shaderInit(void) {
 
 	// Fur Shader Program
 	furProgram = rt3d::initShaders("furShader.vert", "furShader.frag");
-	rt3d::setLight(furProgram, light0);
-	rt3d::setMaterial(furProgram, material0);
 	GLuint uniformIndex = glGetUniformLocation(furProgram, "textureUnit1");
 	glUniform1i(uniformIndex, 1);
 	uniformIndex = glGetUniformLocation(furProgram, "textureUnit0");
@@ -213,7 +179,6 @@ void init(void) {
 	};
 	loadCubeMap(cubeTexFiles, &skybox[0]);
 
-
 	vector<GLfloat> verts;
 	vector<GLfloat> norms;
 	vector<GLfloat> tex_coords;
@@ -221,30 +186,17 @@ void init(void) {
 
 	// Prepare Cube model
 	rt3d::loadObj("cube.obj", verts, norms, tex_coords, indices);
-	cubeIndexCount = indices.size();
-	meshObjects[0] = rt3d::createMesh(verts.size() / 3, verts.data(), nullptr, norms.data(), tex_coords.data(), cubeIndexCount, indices.data());
-
-	verts.clear();
-	norms.clear();
-	tex_coords.clear();
-	indices.clear();
-
-	// Prepare Bunny model
-	rt3d::loadObj("wolf.obj", verts, norms, tex_coords, indices);
-	bunnyIndexCount = indices.size();
-	meshObjects[1] = rt3d::createMesh(verts.size() / 3, verts.data(), nullptr, norms.data(), tex_coords.data(), bunnyIndexCount, indices.data());
-
+	meshIndexCount = indices.size();
+	meshObjects[0] = rt3d::createMesh(verts.size() / 3, verts.data(), nullptr, norms.data(), tex_coords.data(), meshIndexCount, indices.data());
 
 	// Load Textures
 	textures[0] = loadBitmap("tiger.bmp");
 	textures[1] = loadBitmap("leopard.bmp");
 	textures[2] = loadBitmap("giraffe.bmp");
 	textures[3] = loadBitmap("cow.bmp");
-	textures[4] = loadBitmap("light.bmp");
 	PNGProcessor pngprocess;
-	float perlinFreq = 16;
 	pngprocess.readPNG("blank1.png");
-	textures[5] = pngprocess.createFurTextures(383832, 128, 20, furDensity, false);
+	textures[4] = pngprocess.createFurTextures(383832, 128, 20, furDensity, false);
 	pngprocess.writePNG("blank1.png");
 
 	glEnable(GL_DEPTH_TEST);
@@ -319,18 +271,17 @@ void draw(SDL_Window * window) {
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Set up matrices
 	glm::mat4 projection(1.0);
 	projection = glm::perspective(float(60.0f*DEG_TO_RADIAN), 800.0f / 600.0f, 1.0f, 150.0f);
-	//rt3d::setUniformMatrix4fv(phongProgram, "projection", glm::value_ptr(projection));
-
 	GLfloat scale(1.0f);
-
 	glm::mat4 modelview(1.0);
 	mvStack.push(modelview);
 
 	at = moveForward(eye, r, 1.0f);
 	mvStack.top() = glm::lookAt(eye, at, up);
 
+	// Draw Skybox
 	glUseProgram(skyboxProgram);
 	rt3d::setUniformMatrix4fv(skyboxProgram, "projection", glm::value_ptr(projection));
 
@@ -343,24 +294,21 @@ void draw(SDL_Window * window) {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox[0]);
 	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.5f, 1.5f, 1.5f));
 	rt3d::setUniformMatrix4fv(skyboxProgram, "modelview", glm::value_ptr(mvStack.top()));
-	rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
+	rt3d::drawIndexedMesh(meshObjects[0], meshIndexCount, GL_TRIANGLES);
 	mvStack.pop();
 	glCullFace(GL_BACK);
 
-	// back to remainder of rendering
-	glDepthMask(GL_TRUE); // make sure depth test is on
+	// Enable depth test is on for the remainer of rendering.
+	glDepthMask(GL_TRUE); 
 
-	// Draw furry Box
-
+	// Draw mesh with fur applied to it.
 	glUseProgram(furProgram);
-	//rt3d::setLightPos(furProgram, glm::value_ptr(tmp));
 	rt3d::setUniformMatrix4fv(furProgram, "projection", glm::value_ptr(projection));
 
 	mvStack.push(mvStack.top());
 	mvStack.top() = glm::translate(mvStack.top(), glm::vec3(0.0f, 0.0f, -5.0f));
 	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.0f, 1.0f, 1.0f));
 	rt3d::setUniformMatrix4fv(furProgram, "modelview", glm::value_ptr(mvStack.top()));
-	rt3d::setMaterial(furProgram, material1);
 	GLuint uniformIndex = glGetUniformLocation(furProgram, "layers");
 	glUniform1f(uniformIndex, (float)layers);
 	uniformIndex = glGetUniformLocation(furProgram, "furLength");
@@ -371,32 +319,19 @@ void draw(SDL_Window * window) {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[furPatternNum]);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[5]);
+		glBindTexture(GL_TEXTURE_2D, textures[4]);
 		uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
 		glUniform1f(uniformIndex, (float)i);
+
+		// Pass through UVScale and determine the alpha 
 		uniformIndex = glGetUniformLocation(furProgram, "UVScale");
 		num = num - (1 / (float)layers);
 		if (num > 1) num = 1;
 		if (num < 0) num = 0;
 		glUniform1f(uniformIndex, num);
-		rt3d::drawIndexedMesh(meshObjects[1], bunnyIndexCount, GL_TRIANGLES);
-
-		/*float layerNormalize = (((float)i + 1) / layers);
-		glm::vec4 vGravity = (glm::vec4(0.0f, -2.0f, 0.0f, 1.0f) * mvStack.top());
-		float k = pow(layerNormalize, 3);
-		glm::vec4 mod = (vGravity * k);*/
-		//cout << "[" << i << "]" << "Modi; " << (float)mod.x << "," << (float)mod.y << "," << (float)mod.z << " | Norm: " << (float)layerNormalize  << " i: " << i << " layers: " << layers << endl;
+		rt3d::drawIndexedMesh(meshObjects[0], meshIndexCount, GL_TRIANGLES);
 	}
-	//if (layers == 0) {
-	//	uniformIndex = glGetUniformLocation(furProgram, "currentLayer");
-	//	glUniform1i(uniformIndex, 0);
-	//	rt3d::drawIndexedMesh(meshObjects[0], cubeIndexCount, GL_TRIANGLES);
-	//}
-
-
-
 	mvStack.pop();
-
 
 	mvStack.pop(); // initial matrix
 	glDepthMask(GL_TRUE);

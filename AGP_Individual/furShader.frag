@@ -1,11 +1,11 @@
 // furShader.frag
+// use textures, but no lighting or materials
 #version 330
 
 // Some drivers require the following
 precision highp float;
 in vec2 ex_TexCoord;
 in vec3 ex_Normal;
-//in int ex_furLength;
 uniform  int current;
 uniform float UVScale;
 uniform float layers;
@@ -25,10 +25,8 @@ void main(void) {
 	if(currentLayer > 0)
 	{
 		furColour = texture(textureUnit0, ex_TexCoord);
-
 		// Tells OpenGL what to do with transparency.
 		if(furColour.a < 0.1) discard;
-
 		if(furColour.r < 0.1) discard;
 		else furColour.r = baseColour.r;
 		if(furColour.g < 0.1) discard;
@@ -36,9 +34,6 @@ void main(void) {
 		if(furColour.b < 0.1) discard;
 		else furColour.b = baseColour.b;
 	}
-	//ambient = ambient * finalColour;
-	//vec4 diffuse = finalColour;
-	//finalColour = ambient + diffuse * dot(vecLightDir, vec4(ex_Normal,1.0));
 
 	furColour.w = UVScale;
 
