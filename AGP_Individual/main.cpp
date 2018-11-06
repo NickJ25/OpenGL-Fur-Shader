@@ -179,7 +179,7 @@ void init(void) {
 	vector<GLuint> indices;
 
 	// Prepare Cube model
-	rt3d::loadObj("cube.obj", verts, norms, tex_coords, indices);
+	rt3d::loadObj("wolf.obj", verts, norms, tex_coords, indices);
 	meshIndexCount = indices.size();
 	meshObjects[0] = rt3d::createMesh(verts.size() / 3, verts.data(), nullptr, norms.data(), tex_coords.data(), meshIndexCount, indices.data());
 
@@ -275,7 +275,7 @@ void draw(SDL_Window * window) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox[0]);
-	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(1.5f, 1.5f, 1.5f));
+	mvStack.top() = glm::scale(mvStack.top(), glm::vec3(2.0f, 2.0f, 2.0f));
 	rt3d::setUniformMatrix4fv(skyboxProgram, "modelview", glm::value_ptr(mvStack.top()));
 	rt3d::drawIndexedMesh(meshObjects[0], meshIndexCount, GL_TRIANGLES);
 	mvStack.pop();
